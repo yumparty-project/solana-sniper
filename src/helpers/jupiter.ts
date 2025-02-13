@@ -1,31 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
-
-interface JupiterQuoteResponse {
-  inputMint: string;
-  outputMint: string;
-  inAmount: string;
-  outAmount: string;
-  otherAmountThreshold: string;
-  swapMode: string;
-  slippageBps: number;
-  priceImpactPct: string;
-  routePlan: any[];
-  contextSlot: number;
-}
-
-/**
- * @helpers Jupiter
- * Helper functions for interacting with Jupiter aggregator API
- *
- * Provides:
- * - Quote fetching from Jupiter
- * - Swap transaction preparation
- * - Price impact calculations
- *
- * @requires @solana/web3.js
- * @requires bignumber.js
- */
+import { JupiterQuoteResponse } from "../types";
 
 /**
  * Gets a quote from Jupiter API

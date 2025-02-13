@@ -1,19 +1,6 @@
 import { Connection, VersionedTransaction } from "@solana/web3.js";
 
 /**
- * @helpers Transaction
- * Helper functions for Solana transaction handling
- *
- * Features:
- * - Transaction preparation
- * - Transaction signing
- * - Send and confirm transactions
- * - Error handling for failed transactions
- *
- * @requires @solana/web3.js
- */
-
-/**
  * Prepares a transaction from swap data
  * @param swapData - Data from Jupiter API
  * @param signers - Array of signers for the transaction

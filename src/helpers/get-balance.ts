@@ -1,5 +1,6 @@
 import { Connection, PublicKey } from "@solana/web3.js";
 import { TokenBalance } from "../types";
+
 /**
  * @helpers Balance
  * Helper functions for retrieving SOL and SPL token balances
@@ -11,8 +12,7 @@ import { TokenBalance } from "../types";
  * - Balance formatting with proper decimals
  *
  * @requires @solana/web3.js
- * @requires zod - For parameter validation
- */
+$ */
 
 /**
  * Gets SOL balance for a wallet
@@ -20,6 +20,7 @@ import { TokenBalance } from "../types";
  * @param walletPublicKey - Wallet public key
  * @returns Balance in SOL and raw lamports
  */
+
 export async function getSolBalance(
   connection: Connection,
   walletPublicKey: PublicKey

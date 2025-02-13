@@ -29,3 +29,16 @@ export type SwapDetails = {
   takeProfitPercentage?: number;
   stopLossPercentage?: number;
 };
+
+export type JupiterQuoteResponse = {
+  inputMint: string;
+  outputMint: string;
+  inAmount: string;
+  outAmount: string;
+  otherAmountThreshold: string;
+  swapMode: string;
+  slippageBps: number;
+  priceImpactPct: string;
+  routePlan: any[];
+  contextSlot: number;
+};
