@@ -1,0 +1,38 @@
+{
+  "name": "@unblock.io/solana-sniper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node examples/cli.ts",
+    "test": "mocha -r ts-node/register 'tests/**/*.test.ts'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.98.0",
+    "@types/figlet": "^1.7.0",
+    "@types/inquirer": "^9.0.7",
+    "bignumber.js": "^9.1.2",
+    "bs58": "^5.0.0",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "figlet": "^1.8.0",
+    "inquirer": "^12.4.1",
+    "ora": "^8.2.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.14",
+    "dotenv": "^16.4.7",
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/sinon": "^10.0.15",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
