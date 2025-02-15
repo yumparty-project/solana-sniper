@@ -5,7 +5,7 @@ import inquirer from "inquirer";
 import ora from "ora";
 import { CONFIG } from "../../src/config";
 import { getWalletKey } from "../../src/helpers/get-wallet-key";
-import { SwapService } from "../../src/services/swap";
+import { SwapService } from "../../src/services/jupiter/swap";
 import { animateSwap } from "./helpers/animate-swap";
 import { displayTitle } from "./helpers/displat-title";
 import { displayWalletTokens } from "./helpers/display-wallet-tokens";
