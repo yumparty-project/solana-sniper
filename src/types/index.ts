@@ -42,3 +42,25 @@ export type JupiterQuoteResponse = {
   routePlan: any[];
   contextSlot: number;
 };
+
+export type JsonRpcRequest = {
+  jsonrpc: string;
+  id: number;
+  method: string;
+  params: any[];
+};
+
+export type JsonRpcResponse = {
+  jsonrpc: string;
+  id: number;
+  result?: any;
+  error?: {
+    code: number;
+    message: string;
+  };
+};
+
+export type BundleStatus = {
+  status: string;
+  landed_slot?: number;
+};
