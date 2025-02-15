@@ -1,6 +1,6 @@
 # solana-sniper
 
-A token sniping tool for Solana, leveraging Jupiter (Raydium, Orca..etc) for swaps.
+A token sniping tool for Solana, leveraging Jupiter (Raydium, Orca..etc) and Jito MEV for high-performance swaps.
 
 ## Prerequisites
 
@@ -32,13 +32,16 @@ npm install --save-dev typescript
 You can clone the repository and install the dependencies:
 
 ```sh
+git clone https://github.com/yourusername/solana-sniper.git
+cd solana-sniper
 npm install
 ```
 
-Create a `.env` file and add your Solana private key:
+Create a `.env` file and add your configuration:
 
 ```
 SOLANA_PRIVATE_KEY=your_private_key_here
+JITO_AUTH_KEY=your_jito_key_here
 ```
 
 ## Usage
