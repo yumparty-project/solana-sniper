@@ -1,4 +1,4 @@
-import { Connection, VersionedTransaction } from "@solana/web3.js";
+import { Connection, Transaction, VersionedTransaction } from "@solana/web3.js";
 
 /**
  * Prepares a transaction from swap data
@@ -25,12 +25,15 @@ export const prepareTransaction = (
  */
 export async function sendAndConfirmTransaction(
   connection: Connection,
-  transaction: VersionedTransaction
+  transaction: Transaction | VersionedTransaction
 ): Promise<string> {
   const { blockhash, lastValidBlockHeight } =
     await connection.getLatestBlockhash();
 
-  const signature = await connection.sendTransaction(transaction);
+  const signature =
+    "version" in transaction
+      ? await connection.sendTransaction(transaction as VersionedTransaction)
+      : await connection.sendRawTransaction(transaction.serialize());
 
   const confirmation = await connection.confirmTransaction(
     {

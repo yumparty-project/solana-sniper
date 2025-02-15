@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import ora from "ora";
-import { SwapService } from "../../../src/services/swap";
+import { SwapService } from "../../../src/services/jupiter/swap";
 
 /**
  * Displays all tokens present in the user's wallet
