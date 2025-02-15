@@ -1,5 +1,11 @@
 import { CONFIG } from "../../config";
 
+/**
+ * Retrieves swap instructions from the Jupiter API
+ * @param quoteResponse - Quote response from Jupiter
+ * @param userPublicKey - User's public key
+ * @returns Swap instructions
+ */
 export async function getSwapInstructions(
   quoteResponse: any,
   userPublicKey: string
