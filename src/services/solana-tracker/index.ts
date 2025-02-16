@@ -1,4 +1,4 @@
-import WebSocketService from "./wss";
+import { WebSocketService } from "./wss";
 
 /**
  * API client for tracking Solana blockchain data through WebSocket connections.
