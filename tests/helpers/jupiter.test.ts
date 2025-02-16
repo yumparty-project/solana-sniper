@@ -1,7 +1,8 @@
 import { PublicKey } from "@solana/web3.js";
 import BigNumber from "bignumber.js";
 import { expect } from "chai";
-import { getJupiterQuote, requestJupiterSwap } from "../../src/helpers/jupiter";
+import { getQuote } from "../../src/services/jupiter/get-quote";
+import { requestJupiterSwap } from "../../src/services/jupiter/request-swap";
 
 /**
  * @tests Jupiter Helper
@@ -21,17 +22,17 @@ describe("Jupiter Helper", () => {
    * @tests Quote Fetching
    * Tests for Jupiter quote API integration
    */
-  describe("getJupiterQuote", () => {
+  describe("getQuote", () => {
     /**
      * @test Valid Quote
      * Tests successful quote retrieval for SOL/USDC pair
      * Verifies all required quote properties
      */
     it("should successfully get a quote for SOL/USDC", async () => {
-      const result = await getJupiterQuote(
+      const result = await getQuote(
         SOL_ADDRESS,
         USDC_ADDRESS,
-        new BigNumber(1000000000), // 1 SOL
+        new BigNumber(1000000000).toNumber(), // Convert to number
         50
       );
 
@@ -50,10 +51,10 @@ describe("Jupiter Helper", () => {
      */
     it("should throw error when requesting invalid token", async () => {
       try {
-        await getJupiterQuote(
+        await getQuote(
           "invalid-address",
           USDC_ADDRESS,
-          new BigNumber(1000000),
+          new BigNumber(1000000).toNumber(), // Convert to number
           50
         );
         expect.fail("Should have thrown an error");
@@ -75,10 +76,10 @@ describe("Jupiter Helper", () => {
      */
     it("should successfully request swap data for SOL/USDC", async () => {
       // First get a quote
-      const quote = await getJupiterQuote(
+      const quote = await getQuote(
         SOL_ADDRESS,
         USDC_ADDRESS,
-        new BigNumber(1000000000), // 1 SOL
+        new BigNumber(1000000000).toNumber(), // Convert to number
         50
       );
 

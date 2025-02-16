@@ -2,7 +2,11 @@ import { Keypair } from "@solana/web3.js";
 import bs58 from "bs58";
 import { expect } from "chai";
 import dotenv from "dotenv";
+import sinon from "sinon";
 import { CONFIG } from "../../src/config";
+import { checkBundleStatus } from "../../src/services/jito/check-bundle-status";
+import { getTipAccounts } from "../../src/services/jito/get-tip-accounts";
+import { sendJitoBundle } from "../../src/services/jito/send-jito-bundle";
 import { swap } from "../../src/services/jito/swap";
 
 dotenv.config();
@@ -39,6 +43,16 @@ describe("Jito Service Tests", () => {
 
   const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
+
+  let fetchStub: sinon.SinonStub;
+
+  beforeEach(() => {
+    fetchStub = sinon.stub(global, "fetch");
+  });
+
+  afterEach(() => {
+    sinon.restore();
+  });
 
   describe("Basic Swap Operations", () => {
     beforeEach(async function () {
@@ -144,6 +158,93 @@ describe("Jito Service Tests", () => {
       } catch (error: any) {
         expect(error).to.exist;
         expect(error.message).to.include("slippage");
+      }
+    });
+  });
+
+  describe("checkBundleStatus", () => {
+    it("should return bundle status when successful", async () => {
+      const mockResponse = {
+        result: {
+          value: [
+            {
+              bundle_id: "test-bundle",
+              status: "Landed",
+              landed_slot: 123,
+            },
+          ],
+        },
+      };
+
+      fetchStub.resolves({
+        json: async () => mockResponse,
+      } as Response);
+
+      const result = await checkBundleStatus("test-bundle");
+
+      expect(result).to.deep.equal({
+        bundleId: "test-bundle",
+        status: "Landed",
+        landedSlot: 123,
+      });
+    });
+
+    it("should handle errors gracefully", async () => {
+      fetchStub.rejects(new Error("Network error"));
+
+      const result = await checkBundleStatus("test-bundle");
+      expect(result).to.be.null;
+    });
+  });
+
+  describe("getTipAccounts", () => {
+    it("should return tip accounts when successful", async () => {
+      const mockTipAccounts = ["account1", "account2"];
+      fetchStub.resolves({
+        json: async () => ({ result: mockTipAccounts }),
+      } as Response);
+
+      const result = await getTipAccounts();
+      expect(result).to.deep.equal(mockTipAccounts);
+    });
+
+    it("should throw error when request fails", async () => {
+      fetchStub.resolves({
+        json: async () => ({
+          error: { message: "Failed to get tip accounts" },
+        }),
+      } as Response);
+
+      try {
+        await getTipAccounts();
+        expect.fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.message).to.equal("Failed to get tip accounts");
+      }
+    });
+  });
+
+  describe("sendJitoBundle", () => {
+    it("should send bundle successfully", async () => {
+      const mockResult = { bundleId: "test-bundle" };
+      fetchStub.resolves({
+        json: async () => ({ result: mockResult }),
+      } as Response);
+
+      const result = await sendJitoBundle(["tx1", "tx2"]);
+      expect(result).to.deep.equal(mockResult);
+    });
+
+    it("should throw error when sending fails", async () => {
+      fetchStub.resolves({
+        json: async () => ({ error: { message: "Failed to send bundle" } }),
+      } as Response);
+
+      try {
+        await sendJitoBundle(["tx1"]);
+        expect.fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.message).to.equal("Failed to send bundle");
       }
     });
   });

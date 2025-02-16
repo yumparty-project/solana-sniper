@@ -52,10 +52,9 @@ export class SolanaTrackerAPI {
    */
   public subscribeToTokenPoolTransactions(
     tokenAddress: string,
-    poolId: string,
     callback: (data: any) => void
   ): void {
-    const room = `transaction:${tokenAddress}:${poolId}`;
+    const room = `transaction:${tokenAddress}`;
     this.wsService.joinRoom(room);
     this.wsService.on(room, callback);
   }
@@ -103,5 +102,13 @@ export class SolanaTrackerAPI {
    */
   public disconnect(): void {
     this.wsService.disconnect();
+  }
+
+  /**
+   * Returns the current WebSocket connection status
+   * @returns boolean indicating if the WebSocket is connected
+   */
+  public getWebSocketStatus(): boolean {
+    return this.wsService.isConnected();
   }
 }

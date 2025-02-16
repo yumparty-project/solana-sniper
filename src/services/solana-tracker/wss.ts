@@ -265,4 +265,15 @@ export class WebSocketService {
       }
     }
   }
+
+  /**
+   * Checks if the WebSocket connections are established and ready
+   * @returns boolean indicating if both sockets are connected
+   */
+  public isConnected(): boolean {
+    return (
+      this.socket?.readyState === WebSocket.OPEN &&
+      this.transactionSocket?.readyState === WebSocket.OPEN
+    );
+  }
 }
