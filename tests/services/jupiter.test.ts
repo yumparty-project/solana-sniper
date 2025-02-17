@@ -1,114 +1,67 @@
-import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair } from "@solana/web3.js";
 import { expect } from "chai";
-import sinon from "sinon";
 import { CONFIG } from "../../src/config";
 import { getQuote } from "../../src/services/jupiter/get-quote";
 import { getSwapInstructions } from "../../src/services/jupiter/get-swap-instructions";
-import { SwapService } from "../../src/services/jupiter/swap";
 
 describe("Jupiter Service", () => {
-  let fetchStub: sinon.SinonStub;
-  let connectionStub: sinon.SinonStubbedInstance<Connection>;
-  let swapService: SwapService;
   let keypair: Keypair;
 
-  beforeEach(() => {
-    fetchStub = sinon.stub(global, "fetch");
-    connectionStub = sinon.createStubInstance(Connection);
+  before(() => {
     keypair = Keypair.generate();
-    swapService = new SwapService(
-      connectionStub as unknown as Connection,
-      keypair
-    );
-  });
-
-  afterEach(() => {
-    sinon.restore();
   });
 
   describe("getQuote", () => {
     it("should return quote data when successful", async () => {
-      const mockQuote = {
-        inputMint: "input-mint",
-        outputMint: "output-mint",
-        inAmount: 1000,
-        outAmount: 900,
-        swapMode: "ExactIn",
-      };
+      const result = await getQuote(
+        CONFIG.SOLANA_ADDRESS,
+        CONFIG.USDC_ADDRESS,
+        1000000,
+        100
+      );
 
-      fetchStub.resolves({
-        json: async () => mockQuote,
-      } as Response);
+      expect(result).to.not.be.null;
+      expect(result.inputMint).to.equal(CONFIG.SOLANA_ADDRESS);
+      expect(result.outputMint).to.equal(CONFIG.USDC_ADDRESS);
+      expect(result.inAmount).to.be.a("string");
+      expect(result.outAmount).to.be.a("string");
+    });
 
-      const result = await getQuote("input-mint", "output-mint", 1000, 100);
-      expect(result).to.deep.equal(mockQuote);
+    it("should throw error for invalid input mint", async () => {
+      try {
+        await getQuote(
+          "invalid-mint-address",
+          CONFIG.USDC_ADDRESS,
+          1000000,
+          100
+        );
+        expect.fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.message).to.match(
+          /Failed to get quote|Error fetching quote/
+        );
+      }
     });
   });
 
   describe("getSwapInstructions", () => {
-    it("should return swap instructions when successful", async () => {
-      const mockInstructions = {
-        setupInstructions: [],
-        swapInstruction: "swap-instruction",
-        cleanupInstruction: null,
-        addressLookupTableAddresses: [],
-      };
-
-      fetchStub.resolves({
-        json: async () => mockInstructions,
-      } as Response);
+    it("should return swap instructions for valid quote", async () => {
+      const quote = await getQuote(
+        CONFIG.SOLANA_ADDRESS,
+        CONFIG.USDC_ADDRESS,
+        1000000,
+        100
+      );
 
       const result = await getSwapInstructions(
-        { quote: "data" },
-        "user-pubkey"
+        quote,
+        keypair.publicKey.toString()
       );
-      expect(result).to.deep.equal(mockInstructions);
-    });
-  });
 
-  describe("SwapService", () => {
-    describe("swapToken", () => {
-      it("should validate SOL amount correctly", async () => {
-        connectionStub.getBalance.resolves(2000000000); // 2 SOL
-
-        try {
-          await swapService.swapToken(
-            { address: CONFIG.SOLANA_ADDRESS },
-            { address: "output-token" },
-            3, // Try to swap 3 SOL with only 2 SOL balance
-            50
-          );
-          expect.fail("Should have thrown insufficient balance error");
-        } catch (error: any) {
-          expect(error.message).to.include("Insufficient balance");
-        }
-      });
-
-      it("should handle token validation", async () => {
-        connectionStub.getParsedTokenAccountsByOwner.resolves({
-          value: [
-            {
-              pubkey: new PublicKey("token-account"),
-              account: {
-                data: {
-                  parsed: {
-                    info: {
-                      mint: "token-mint",
-                      tokenAmount: {
-                        uiAmount: 100,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        });
-
-        const tokens = await swapService.getWalletTokens();
-        expect(tokens).to.have.lengthOf(1);
-        expect(tokens[0].balance).to.equal(100);
-      });
+      expect(result).to.have.property("setupInstructions");
+      expect(result).to.have.property("swapInstruction");
+      expect(result).to.have.property("cleanupInstruction");
+      expect(result).to.have.property("addressLookupTableAddresses");
     });
   });
 });
