@@ -1,32 +1,41 @@
 import chalk from "chalk";
 import ora from "ora";
-import { SwapService } from "../../../src/services/jupiter/swap";
+import { getWalletTokens } from "../../../src/services/solana-tracker";
 
 /**
  * Displays all tokens present in the user's wallet
- * @param swapService - The swap service instance to fetch wallet tokens
+ * @param walletAddress - The wallet address to fetch tokens
  */
-export const displayWalletTokens = async (swapService: SwapService) => {
+export async function displayWalletTokens(walletAddress: string) {
   const spinner = ora("Fetching wallet tokens...").start();
-  try {
-    const tokens = await swapService.getWalletTokens();
-    spinner.succeed("Wallet tokens found!");
 
+  try {
+    const tokens = await getWalletTokens(walletAddress);
+    console.log(tokens);
     if (tokens.length === 0) {
-      console.log(chalk.yellow("\n💼 No tokens found in wallet"));
+      spinner.info("No tokens found in wallet");
       return;
     }
 
-    console.log(chalk.green("\n💼 Your Wallet Tokens:"));
-    tokens.forEach((token, index) => {
-      console.log(chalk.cyan(`\n${index + 1}. Token: ${token.mint}`));
-      console.log(chalk.gray(`   Balance: ${token.balance}`));
+    spinner.succeed("Wallet tokens:");
+
+    tokens.forEach((tokenInfo: any) => {
+      console.log(
+        chalk.cyan("\n🪙 Token:"),
+        tokenInfo.token.name,
+        chalk.gray(`(${tokenInfo.token.symbol})`),
+        "\n   Balance:",
+        chalk.yellow(tokenInfo.balance.toFixed(6)),
+        "\n   Value:",
+        chalk.green(`$${tokenInfo.value.toFixed(2)}`),
+        "\n   Address:",
+        chalk.gray(tokenInfo.token.mint)
+      );
     });
-    console.log(); // Empty line for spacing
   } catch (error) {
     spinner.fail("Failed to fetch wallet tokens");
     if (error instanceof Error) {
       console.error(chalk.red(error.message));
     }
   }
-};
+}
