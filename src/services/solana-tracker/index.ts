@@ -1,3 +1,4 @@
+import { CONFIG } from "../../config";
 import { WebSocketService } from "./wss";
 
 /**
@@ -110,5 +111,37 @@ export class SolanaTrackerAPI {
    */
   public getWebSocketStatus(): boolean {
     return this.wsService.isConnected();
+  }
+}
+
+export async function getWalletTokens(walletAddress: string): Promise<
+  {
+    token: {
+      name: string;
+      symbol: string;
+      mint: string;
+      decimals: number;
+      image?: string;
+    };
+    balance: number;
+    value: number;
+  }[]
+> {
+  try {
+    const headers: HeadersInit = {
+      "Content-Type": "application/json",
+      "x-api-key": CONFIG.SOLANA_TRACKER_API_KEY || "",
+    };
+
+    const response = await fetch(
+      `${CONFIG.SOLANA_TRACKER_HTTP}/wallet/${walletAddress}`,
+      { headers }
+    );
+    console.log({ response });
+    const data = await response.json();
+    return data.tokens;
+  } catch (error) {
+    console.error("Error fetching wallet tokens:", error);
+    return [];
   }
 }
