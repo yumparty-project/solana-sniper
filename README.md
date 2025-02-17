@@ -87,9 +87,9 @@ solana-sniper/
 
 ### Key Components
 
-- [Jupiter](https://station.jup.ag/docs): DEX aggregator for optimal swap routes
-- [Jito](https://jito-foundation.gitbook.io/mev): Bundle creation and protection against front-running
-- [Solana Tracker](https://docs.solanatracker.io/): Real-time network monitoring
+- [Jupiter](https://station.jup.ag/docs) : DEX aggregator for optimal swap routes
+- [Jito](https://jito-foundation.gitbook.io/mev) : Bundle creation and protection against front-running
+- [Solana Tracker](https://docs.solanatracker.io/) : Real-time network monitoring
 
 ### Testing
 
@@ -102,7 +102,7 @@ The project includes comprehensive test suites for:
 ### Security
 
 - **No private key in code**: Private key is stored in environment variables
-- **MEV Protection**: Utilizes Jito for protection against front-running
+- **MEV Protection**: Utilizes [Jito](https://jito-foundation.gitbook.io/mev) for protection against front-running
 - **Retry Mechanism**: Retries transactions on failure with exponential backoff and priority fee increase
 
 ## License
