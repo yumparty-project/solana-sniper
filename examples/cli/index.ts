@@ -1,11 +1,9 @@
-import { Connection } from "@solana/web3.js";
 import chalk from "chalk";
 import { config as dotenvConfig } from "dotenv";
 import inquirer from "inquirer";
 import ora from "ora";
-import { CONFIG } from "../../src/config";
 import { getWalletKey } from "../../src/helpers/get-wallet-key";
-import { SwapService } from "../../src/services/jupiter/swap";
+import { swap } from "../../src/services/jito/swap";
 import { animateSwap } from "./helpers/animate-swap";
 import { displayTitle } from "./helpers/displat-title";
 import { displayWalletTokens } from "./helpers/display-wallet-tokens";
@@ -26,14 +24,12 @@ const main = async () => {
     await displayTitle();
 
     const spinner = ora("Connecting to Solana...").start();
-    const connection = new Connection(CONFIG.SOLANA_RPC);
-    const keypair = await getWalletKey();
+    const { keypair } = await getWalletKey();
     spinner.succeed("Connected to Solana!");
-
-    const swapService = new SwapService(connection, keypair);
+    console.log("Wallet address:", keypair.publicKey.toString());
 
     while (true) {
-      await displayWalletTokens(swapService);
+      await displayWalletTokens(keypair.publicKey.toString());
       const swapDetails = await promptForSwapDetails();
 
       if (swapDetails === null) {
@@ -42,22 +38,29 @@ const main = async () => {
       }
 
       spinner.text = "Preparing transaction...";
+      console.log(swapDetails);
       spinner.start();
 
       let result;
       if (swapDetails.type === "sell_percentage") {
-        result = await swapService.sellToken({
-          tokenAddress: swapDetails.tokenAddress,
-          percentage: swapDetails.percentage,
-          slippage: Math.round(swapDetails.slippage * 100),
-        });
-      } else {
-        result = await swapService.swapToken(
-          { address: swapDetails.inputToken },
-          { address: swapDetails.outputToken },
-          swapDetails.amount,
-          Math.round(swapDetails.slippage * 100)
+        throw new Error(
+          "Percentage-based selling not yet implemented with Jito"
         );
+      } else {
+        // Convertir les adresses en PublicKey pour Jito
+        result = await swap(
+          swapDetails.inputToken,
+          swapDetails.outputToken,
+          swapDetails.amount,
+          Math.round(swapDetails.slippage * 100),
+          5,
+          keypair
+        );
+      }
+
+      if (!result) {
+        spinner.fail("Swap failed!");
+        continue;
       }
 
       spinner.succeed("Swap transaction submitted!");
@@ -65,9 +68,15 @@ const main = async () => {
       await animateSwap();
 
       console.log(chalk.green("\n✨ Transaction Details:"));
-      console.log(chalk.cyan("Hash:"), result.hash);
-      console.log(chalk.cyan("Explorer:"), result.explorerUrl);
-      console.log(chalk.cyan("DEXScreener:"), result.dexscreenerUrl);
+      console.log(chalk.cyan("Signature:"), result.signature);
+      console.log(chalk.cyan("Bundle Status:"), result.bundleStatus?.status);
+      if (result.bundleStatus?.landedSlot) {
+        console.log(chalk.cyan("Landed Slot:"), result.bundleStatus.landedSlot);
+      }
+      console.log(
+        chalk.cyan("Explorer:"),
+        `https://solscan.io/tx/${result.signature}`
+      );
 
       const { action } = await inquirer.prompt([
         {
