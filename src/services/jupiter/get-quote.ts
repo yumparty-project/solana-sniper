@@ -1,4 +1,6 @@
-import { CONFIG } from "../../config";
+import { createJupiterApiClient } from "@jup-ag/api";
+
+const jupiterQuoteApi = createJupiterApiClient();
 
 /**
  * Retrieves a quote from the Jupiter API
@@ -13,15 +15,25 @@ export async function getQuote(
   outputMint: string,
   amount: number,
   slippageBps: number
-) {
-  const params = new URLSearchParams({
-    inputMint,
-    outputMint,
-    amount: amount.toString(),
-    slippageBps: slippageBps.toString(),
-  });
+): Promise<any> {
+  try {
+    const quote = await jupiterQuoteApi.quoteGet({
+      inputMint,
+      outputMint,
+      amount,
+      slippageBps,
+      // Optionnel: asLegacyTransaction: false, // Par défaut utilise les transactions versionnées
+    });
 
-  const response = await fetch(`${CONFIG.JUPITER_V6_API}/quote?${params}`);
-  const data = await response.json();
-  return data;
+    if (!quote) {
+      throw new Error("No quote returned from Jupiter API");
+    }
+
+    return quote;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Error fetching quote: ${error.message}`);
+    }
+    throw new Error("Unknown error while fetching quote");
+  }
 }
