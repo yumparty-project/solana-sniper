@@ -48,7 +48,7 @@ export async function swap(
       const adjustedSlippageBps = slippageBps * (1 + retries * 0.5);
 
       // 1. Get quote from Jupiter
-      console.log("\n💰 Getting quote from Jupiter...");
+      console.log("\nGetting quote from Jupiter...");
       const quoteResponse = await getQuote(
         inputMint,
         outputMint,
@@ -57,13 +57,13 @@ export async function swap(
       );
 
       if (!quoteResponse || !quoteResponse.routePlan) {
-        throw new Error("❌ No trading routes found");
+        throw new Error("No trading routes found");
       }
 
-      console.log("✅ Quote received successfully");
+      console.log("Quote received successfully");
 
       // 2. Get swap instructions
-      console.log("\n📝 Getting swap instructions...");
+      console.log("\nGetting swap instructions...");
       const swapInstructions = await getSwapInstructions(
         quoteResponse,
         wallet.publicKey.toString()
@@ -71,12 +71,12 @@ export async function swap(
 
       if (!swapInstructions || swapInstructions.error) {
         throw new Error(
-          "❌ Failed to get swap instructions: " +
+          "Failed to get swap instructions: " +
             (swapInstructions ? swapInstructions.error : "Unknown error")
         );
       }
 
-      console.log("✅ Swap instructions received successfully");
+      console.log("Swap instructions received successfully");
 
       const {
         setupInstructions,
@@ -88,7 +88,7 @@ export async function swap(
       const swapInstruction = deserializeInstruction(swapInstructionPayload);
 
       // 3. Prepare transaction
-      console.log("\n🛠️  Preparing transaction...");
+      console.log("\nPreparing transaction...");
       const addressLookupTableAccounts = await getAddressLookupTableAccounts(
         addressLookupTableAddresses
       );
@@ -105,7 +105,7 @@ export async function swap(
         instructions.push(deserializeInstruction(cleanupInstruction));
       }
 
-      console.log("\n🧪 Simulating transaction...");
+      console.log("\nSimulating transaction...");
       const computeUnits = await simulateTransaction(
         instructions,
         wallet.publicKey,
@@ -114,7 +114,7 @@ export async function swap(
       );
 
       if (computeUnits === undefined) {
-        throw new Error("❌ Failed to simulate transaction");
+        throw new Error("Failed to simulate transaction");
       }
 
       if (
@@ -122,15 +122,15 @@ export async function swap(
         "error" in computeUnits &&
         computeUnits.error === "InsufficientFundsForRent"
       ) {
-        console.log("❌ Insufficient funds for rent. Skipping this swap.");
+        console.log("Insufficient funds for rent. Skipping this swap.");
         return null;
       }
 
       const priorityFee = await getAveragePriorityFee();
 
-      console.log(`🧮 Compute units: ${computeUnits}`);
+      console.log(`Compute units: ${computeUnits}`);
       console.log(
-        `💸 Priority fee: ${
+        `Priority fee: ${
           priorityFee.microLamports
         } micro-lamports (${priorityFee.solAmount.toFixed(9)} SOL)`
       );
@@ -149,29 +149,29 @@ export async function swap(
       transaction.sign([wallet]);
 
       // 7. Create and send Jito bundle
-      console.log("\n📦 Creating Jito bundle...");
+      console.log("\nCreating Jito bundle...");
       const jitoBundle = await createJitoBundle(transaction, wallet);
-      console.log("✅ Jito bundle created successfully");
+      console.log("Jito bundle created successfully");
 
-      console.log("\n📤 Sending Jito bundle...");
+      console.log("\nSending Jito bundle...");
       let bundleId = await sendJitoBundle(jitoBundle);
-      console.log(`✅ Jito bundle sent. Bundle ID: ${bundleId}`);
+      console.log(`Jito bundle sent. Bundle ID: ${bundleId}`);
 
-      console.log("\n🔍 Checking bundle status...");
+      console.log("\nChecking bundle status...");
       const bundleResult = await checkBundleWithTimeout(bundleId);
       console.log({ bundleResult });
       if (bundleResult.success) {
         console.log(
-          `✔ Bundle finalized. Slot: ${bundleResult.status?.landedSlot}`
+          `Bundle finalized. Slot: ${bundleResult.status?.landedSlot}`
         );
-        console.log("\n✨ Swap executed successfully! ✨");
+        console.log("Swap executed successfully!");
         console.log("========== SWAP COMPLETE ==========\n");
 
         const signature = bs58.encode(transaction.signatures[0]);
         return { bundleStatus: bundleResult.status, signature };
       }
 
-      // Si le bundle a échoué ou timeout, on augmente le priority fee et on réessaie
+      // 8. If bundle failed or timeout, increase priority fee and retry
       const newPriorityFee = {
         microLamports: priorityFee.microLamports + 1000 * (retries + 1),
         solAmount: (priorityFee.microLamports + 1000 * (retries + 1)) / 1e6,
@@ -183,14 +183,12 @@ export async function swap(
       throw new Error(bundleResult.error || "Bundle execution failed");
     } catch (error) {
       console.error(
-        `\n❌ Error executing swap (attempt ${retries + 1}/${maxRetries}):`
+        `\nError executing swap (attempt ${retries + 1}/${maxRetries}):`
       );
       console.error((error as any).message);
       retries++;
       if (retries >= maxRetries) {
-        console.error(
-          `\n💔 Failed to execute swap after ${maxRetries} attempts.`
-        );
+        console.error(`\nFailed to execute swap after ${maxRetries} attempts.`);
         throw error;
       }
       console.log(`\nRetrying in 2 seconds...`);
